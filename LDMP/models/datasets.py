@@ -91,6 +91,7 @@ class Dataset(DatasetBase):
             filename: Optional[str] = None
         ) -> None:
         super().__init__()
+        self.file_path = None
 
         self.__origin = Dataset.Origin.not_applicable
         self.__schema = None
@@ -276,6 +277,7 @@ class Dataset(DatasetBase):
             source_name = self.slug
         descriptor_file_name = f'{self.run_id}_{source_name}_{self.name}.json'
         descriptor_file_name = os.path.join(out_path, descriptor_file_name)
+        self.file_path = descriptor_file_name
         QgsLogger.debug('* Dump dataset descriptor into file: '+ descriptor_file_name, debuglevel=4)
 
         with open(descriptor_file_name, 'w') as f:

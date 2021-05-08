@@ -32,6 +32,13 @@ from LDMP.models.datasets import (
 )
 
 
+class DatasetExportMode(enum.Enum):
+    PDF = 'pdf',
+    PNG = 'png',
+    CUSTOM = 'custom',
+    ZIP = 'zip',
+
+
 class DatasetsModel(QAbstractItemModel):
 
     def __init__(self, tree: Datasets, parent=None):

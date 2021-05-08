@@ -17,6 +17,7 @@ __date__ = '2021-03-03'
 from datetime import datetime
 
 import qgis.core
+from enum import Enum
 from functools import partial
 from qgis.PyQt.QtCore import (
     QModelIndex,
@@ -43,14 +44,22 @@ from qgis.PyQt.QtGui import (
     QPainter,
     QIcon
 )
+
+from qgis.PyQt import QtWidgets
+
 from LDMP.models.datasets import (
     Dataset,
     Datasets
+)
+
+from LDMP.models.datasets_model import (
+    DatasetExportMode
 )
 from LDMP.models.algorithms import AlgorithmDescriptor
 from LDMP import __version__, log, tr
 from LDMP.gui.WidgetDatasetItem import Ui_WidgetDatasetItem
 from LDMP.calculate import get_local_script_metadata
+from LDMP.gui.WidgetDatasetItemDetails import Ui_WidgetDatasetItemDetails
 
 class DatasetItemDelegate(QStyledItemDelegate):
 
@@ -223,6 +232,7 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
 
     def show_details(self):
         log(f"Details button clicked for dataset {self.dataset.name!r}")
+        DatasetDetailsWidget(self.dataset, self.plugin, parent=self).exec_()
 
     def load_dataset(self):
         log(f"Load button clicked for dataset {self.dataset.name!r}")
@@ -232,3 +242,45 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
         log(f"Delete button clicked for dataset {self.dataset.name!r}")
         self.dataset.delete()
 
+
+class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
+
+    def __init__(self, dataset: Dataset, plugin=None, parent=None):
+        super(DatasetDetailsWidget, self).__init__(parent)
+        self.plugin = plugin
+        self.setupUi(self)
+        self.setAutoFillBackground(True)  # allows hiding background prerendered pixmap
+        self.dataset = dataset
+
+        self.name_le.setText(self.dataset.name)
+        self.state_le.setText(self.dataset.status)
+        self.created_at_le.setText(str(self.dataset.creation_date))
+        self.path_le.setText(self.dataset.file_path)
+        self.alg_le.setText(self.dataset.source)
+        self.load_export_modes()
+
+    def load_dataset(self):
+        log(f"Loading dataset into QGIS  {self.dataset.name!r}")
+
+    def delete_dataset(self):
+        log(f"Deleting dataset {self.dataset.name!r}")
+
+    def export_dataset(self, export_mode: DatasetExportMode):
+        log(f"Exporting dataset {self.dataset.name!r}")
+
+    def load_export_modes(self):
+        export_modes = {
+            DatasetExportMode.PDF: tr("Export report as PDF"),
+            DatasetExportMode.PNG: tr("Export report as PNG"),
+            DatasetExportMode.CUSTOM: tr("Customize report"),
+            DatasetExportMode.ZIP: tr("Export as a ZIP"),
+        }
+        self.export_tool_button.setPopupMode(QToolButton.MenuButtonPopup)
+        self.export_tool_button.setMenu(QMenu())
+
+        for mode_type, mode_text in export_modes.items():
+            export_action = QAction(tr(mode_text))
+            export = partial(self.export_dataset, mode_type)
+            export_action.triggered.connect(export)
+            self.export_tool_button.menu().addAction(export_action)
+>>>>>>> update on the dataset details dialog components

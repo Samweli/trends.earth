@@ -60,6 +60,7 @@ from LDMP import __version__, log, tr
 from LDMP.gui.WidgetDatasetItem import Ui_WidgetDatasetItem
 from LDMP.calculate import get_local_script_metadata
 from LDMP.gui.WidgetDatasetItemDetails import Ui_WidgetDatasetItemDetails
+from LDMP.jobs import DlgJobsDetails
 
 class DatasetItemDelegate(QStyledItemDelegate):
 
@@ -255,9 +256,11 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         self.name_le.setText(self.dataset.name)
         self.state_le.setText(self.dataset.status)
         self.created_at_le.setText(str(self.dataset.creation_date))
-        self.path_le.setText(self.dataset.file_path)
+        #self.path_le.setText(self.dataset.fileName())
         self.alg_le.setText(self.dataset.source)
         self.load_export_modes()
+        if self.dataset.job is not '':
+            self.load_job_details()
 
     def load_dataset(self):
         log(f"Loading dataset into QGIS  {self.dataset.name!r}")
@@ -267,6 +270,18 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
 
     def export_dataset(self, export_mode: DatasetExportMode):
         log(f"Exporting dataset {self.dataset.name!r}")
+
+    def load_job_details(self):
+        details_dlg = DlgJobsDetails(self)
+        details_dlg.task_name.setText(self.dataset.job.get('task_name', ''))
+        details_dlg.task_status.setText(self.job.get('status', ''))
+        details_dlg.comments.setText(self.job.get('task_notes', ''))
+        details_dlg.input.setText(self.json.dumps(self.job.get('params', ''), indent=4, sort_keys=True))
+        details_dlg.output.setText(self.json.dumps(self.job.get('results', ''), indent=4, sort_keys=True))
+
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.addWidget(details_dlg)
+        self.alg_box.setLayout(vbox)
 
     def load_export_modes(self):
         export_modes = {
@@ -279,8 +294,9 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         self.export_tool_button.setMenu(QMenu())
 
         for mode_type, mode_text in export_modes.items():
-            export_action = QAction(tr(mode_text))
+            export_action = QAction(tr(mode_text), self)
             export = partial(self.export_dataset, mode_type)
             export_action.triggered.connect(export)
             self.export_tool_button.menu().addAction(export_action)
->>>>>>> update on the dataset details dialog components
+            if mode_type == DatasetExportMode.PDF:
+                self.export_tool_button.setDefaultAction(export_action)

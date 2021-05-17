@@ -94,6 +94,7 @@ class Dataset(DatasetBase):
 
         self.__origin = Dataset.Origin.not_applicable
         self.__schema = None
+        self.job = None
 
         if job:
             job_schema = JobSchema()
@@ -187,7 +188,6 @@ class Dataset(DatasetBase):
             # I't possible distinguish that is local processed Dataset only by
             # source value
             else:
-                self.job = ''
 
                 self.status = dataset.get('status')
                 self.progress = dataset.get('progress')

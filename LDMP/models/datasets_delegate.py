@@ -259,29 +259,30 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         #self.path_le.setText(self.dataset.fileName())
         self.alg_le.setText(self.dataset.source)
         self.load_export_modes()
-        if self.dataset.job is not '':
+        if self.dataset.job is not None:
             self.load_job_details()
+        self.pushButtonDelete.setEnabled(
+            self.dataset.origin() == Dataset.Origin.downloaded_dataset
+        )
+        self.pushButtonDelete.clicked.connect(self.delete_dataset)
+        self.pushButtonLoad.clicked.connect(self.load_dataset)
 
     def load_dataset(self):
         log(f"Loading dataset into QGIS  {self.dataset.name!r}")
 
     def delete_dataset(self):
         log(f"Deleting dataset {self.dataset.name!r}")
+        self.dataset.delete()
 
     def export_dataset(self, export_mode: DatasetExportMode):
         log(f"Exporting dataset {self.dataset.name!r}")
 
     def load_job_details(self):
-        details_dlg = DlgJobsDetails(self)
-        details_dlg.task_name.setText(self.dataset.job.get('task_name', ''))
-        details_dlg.task_status.setText(self.job.get('status', ''))
-        details_dlg.comments.setText(self.job.get('task_notes', ''))
-        details_dlg.input.setText(self.json.dumps(self.job.get('params', ''), indent=4, sort_keys=True))
-        details_dlg.output.setText(self.json.dumps(self.job.get('results', ''), indent=4, sort_keys=True))
-
-        vbox = QtWidgets.QVBoxLayout()
-        vbox.addWidget(details_dlg)
-        self.alg_box.setLayout(vbox)
+        self.task_name.setText(self.dataset.job.get('task_name', ''))
+        self.task_status.setText(self.job.get('status', ''))
+        self.comments.setText(self.job.get('task_notes', ''))
+        self.input.setText(self.json.dumps(self.job.get('params', ''), indent=4, sort_keys=True))
+        self.output.setText(self.json.dumps(self.job.get('results', ''), indent=4, sort_keys=True))
 
     def load_export_modes(self):
         export_modes = {

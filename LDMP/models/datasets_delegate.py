@@ -14,6 +14,7 @@
 __author__ = 'Luigi Pirelli / Kartoza'
 __date__ = '2021-03-03'
 
+import json
 from datetime import datetime
 
 import qgis.core
@@ -60,7 +61,7 @@ from LDMP import __version__, log, tr
 from LDMP.gui.WidgetDatasetItem import Ui_WidgetDatasetItem
 from LDMP.calculate import get_local_script_metadata
 from LDMP.gui.WidgetDatasetItemDetails import Ui_WidgetDatasetItemDetails
-from LDMP.jobs import DlgJobsDetails
+from LDMP.jobs import Jobs
 
 class DatasetItemDelegate(QStyledItemDelegate):
 
@@ -233,7 +234,7 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
 
     def show_details(self):
         log(f"Details button clicked for dataset {self.dataset.name!r}")
-        DatasetDetailsWidget(self.dataset, self.plugin, parent=self).exec_()
+        DatasetDetailsWidget(self.dataset, parent=self).exec_()
 
     def load_dataset(self):
         log(f"Load button clicked for dataset {self.dataset.name!r}")
@@ -246,9 +247,8 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
 
 class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
 
-    def __init__(self, dataset: Dataset, plugin=None, parent=None):
+    def __init__(self, dataset: Dataset, parent=None):
         super(DatasetDetailsWidget, self).__init__(parent)
-        self.plugin = plugin
         self.setupUi(self)
         self.setAutoFillBackground(True)  # allows hiding background prerendered pixmap
         self.dataset = dataset
@@ -256,11 +256,10 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         self.name_le.setText(self.dataset.name)
         self.state_le.setText(self.dataset.status)
         self.created_at_le.setText(str(self.dataset.creation_date))
-        #self.path_le.setText(self.dataset.fileName())
+        self.path_le.setText(self.dataset.fileName())
         self.alg_le.setText(self.dataset.source)
         self.load_export_modes()
-        if self.dataset.job is not None:
-            self.load_job_details()
+        self.load_job_details()
         self.pushButtonDelete.setEnabled(
             self.dataset.origin() == Dataset.Origin.downloaded_dataset
         )
@@ -269,6 +268,7 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
 
     def load_dataset(self):
         log(f"Loading dataset into QGIS  {self.dataset.name!r}")
+        self.dataset.add()
 
     def delete_dataset(self):
         log(f"Deleting dataset {self.dataset.name!r}")
@@ -278,11 +278,14 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         log(f"Exporting dataset {self.dataset.name!r}")
 
     def load_job_details(self):
-        self.task_name.setText(self.dataset.job.get('task_name', ''))
-        self.task_status.setText(self.job.get('status', ''))
-        self.comments.setText(self.job.get('task_notes', ''))
-        self.input.setText(self.json.dumps(self.job.get('params', ''), indent=4, sort_keys=True))
-        self.output.setText(self.json.dumps(self.job.get('results', ''), indent=4, sort_keys=True))
+        job_descriptor = Jobs().jobById(str(self.dataset.run_id))
+        if job_descriptor is not None:
+            job = job_descriptor[1].raw
+            self.task_name.setText(job.get('task_name', ''))
+            self.task_status.setText(job.get('status', ''))
+            self.comments.setText(job.get('task_notes', ''))
+            self.input.setText(json.dumps(job.get('params', ''), indent=4, sort_keys=True))
+            self.output.setText(json.dumps(job.get('results', ''), indent=4, sort_keys=True))
 
     def load_export_modes(self):
         export_modes = {

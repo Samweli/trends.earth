@@ -15,11 +15,21 @@ __author__ = 'Luigi Pirelli / Kartoza'
 __date__ = '2021-03-03'
 
 import json
-from datetime import datetime
+import os
+from datetime import datetime, timezone
 
-import qgis.core
-from enum import Enum
 from functools import partial
+
+from qgis.core import (
+    QgsLayerTree,
+    QgsLayoutExporter,
+    QgsLayoutItemMap,
+    QgsProject,
+    QgsPrintLayout,
+    QgsReadWriteContext,
+    QgsSettings,
+)
+from qgis.utils import iface
 from qgis.PyQt.QtCore import (
     QModelIndex,
     Qt,
@@ -44,6 +54,10 @@ from qgis.PyQt.QtWidgets import (
 from qgis.PyQt.QtGui import (
     QPainter,
     QIcon
+)
+
+from qgis.PyQt.QtXml import (
+    QDomDocument
 )
 
 from qgis.PyQt import QtWidgets
@@ -117,7 +131,8 @@ class DatasetItemDelegate(QStyledItemDelegate):
         item = model.data(index, Qt.DisplayRole)
 
         if isinstance(item, Dataset):
-            widget = self.createEditor(None, option, index) # parent swet to none otherwise remain painted in the widget
+            widget = self.createEditor(None, option,
+                                       index)  # parent swet to none otherwise remain painted in the widget
             size = widget.size()
             del widget
             return size
@@ -135,6 +150,7 @@ class DatasetItemDelegate(QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor: QWidget, option: QStyleOptionViewItem, index: QModelIndex):
         editor.setGeometry(option.rect)
+
 
 class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
 
@@ -171,7 +187,7 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
                 start_date_txt = '<No start date set>'
         self.labelCreationDate.setText(start_date_txt)
 
-        self.labelRunId.setText(str(self.dataset.run_id)) # it is UUID
+        self.labelRunId.setText(str(self.dataset.run_id))  # it is UUID
 
         # disable delete button by default
         self.pushButtonDelete.setEnabled(False)
@@ -188,22 +204,22 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
             self.progressBar.hide()
 
         if self.dataset.status == 'PENDING':
-            self.progressBar.setRange(0,100)
+            self.progressBar.setRange(0, 100)
             self.progressBar.setFormat(self.dataset.status)
             self.progressBar.show()
-        if ( self.dataset.progress > 0 and
-             self.dataset.progress < 100
-            ):
+        if (self.dataset.progress > 0 and
+                self.dataset.progress < 100
+        ):
             # no % come from server => set progress as continue update
             self.progressBar.show()
             self.progressBar.setMinimum(0)
             self.progressBar.setMaximum(0)
             self.progressBar.setFormat('Processing...')
         # change GUI if finished
-        if ( self.dataset.status in ['FINISHED', 'SUCCESS'] and
-             self.dataset.progress == 100 and
-             self.dataset.origin() != Dataset.Origin.downloaded_dataset
-            ):
+        if (self.dataset.status in ['FINISHED', 'SUCCESS'] and
+                self.dataset.progress == 100 and
+                self.dataset.origin() != Dataset.Origin.downloaded_dataset
+        ):
             self.progressBar.reset()
             self.progressBar.hide()
             # disable download button if auto download is set
@@ -252,6 +268,7 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         self.setupUi(self)
         self.setAutoFillBackground(True)  # allows hiding background prerendered pixmap
         self.dataset = dataset
+        self.map_layout = MapLayout(dataset)
 
         self.name_le.setText(self.dataset.name)
         self.state_le.setText(self.dataset.status)
@@ -266,8 +283,11 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         self.pushButtonDelete.clicked.connect(self.delete_dataset)
         self.pushButtonLoad.clicked.connect(self.load_dataset)
 
-    def load_dataset(self):
+    def load_dataset(self, mode, export=False):
         log(f"Loading dataset into QGIS  {self.dataset.name!r}")
+        if export:
+            export = partial(self.export_layout, mode)
+            self.dataset.downloaded.connect(export)
         self.dataset.add()
 
     def delete_dataset(self):
@@ -276,6 +296,7 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
 
     def export_dataset(self, export_mode: DatasetExportMode):
         log(f"Exporting dataset {self.dataset.name!r}")
+        self.map_layout.export_layout(export_mode)
 
     def load_job_details(self):
         job_descriptor = Jobs().jobById(str(self.dataset.run_id))
@@ -304,3 +325,65 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
             self.export_tool_button.menu().addAction(export_action)
             if mode_type == DatasetExportMode.PDF:
                 self.export_tool_button.setDefaultAction(export_action)
+
+
+class MapLayout(QObject):
+    def __init__(self, dataset: Dataset):
+        self.dataset = dataset
+        self.project = QgsProject.instance()
+        self.layout = QgsPrintLayout(self.project)
+        self.layout.initializeDefaults()
+        self.manager = QgsProject.instance().layoutManager()
+        self.job_descriptor = Jobs().jobById(str(self.dataset.run_id))
+
+    def open_layout(self):
+        log(f"Map layout opened")
+
+    def export_layout(self, mode: DatasetExportMode):
+        log(f"Exporting map")
+        template = os.path.join(
+            os.path.join(os.path.dirname(
+                os.path.dirname(os.path.realpath(__file__))),
+                'data'), 'map_template_landscape2.qpt')
+
+        base_data_directory = QgsSettings().value(
+            "trends_earth/advanced/base_data_directory",
+            None,
+            type=str)
+        with open(template) as f:
+            template_content = f.read()
+        doc = QDomDocument()
+        doc.setContent(template_content)
+        items, ok = self.layout.loadFromTemplate(doc, QgsReadWriteContext(), False)
+
+        checked_layers = [layer.name() for layer in QgsProject().instance().layerTreeRoot().children() if
+                          layer.isVisible()]
+        map_layers = [layer for layer in QgsProject().instance().mapLayers().values() if
+                       layer.name() in checked_layers]
+        legend = self.layout.itemById('legend')
+        root = QgsLayerTree()
+        for layer in map_layers:
+            root.addLayer(layer)
+        legend.model().setRootGroup(root)
+
+        title = self.layout.itemById('title')
+        subtitle = self.layout.itemById('subtitle')
+        date_note = self.layout.itemById('date_note')
+
+        if self.job_descriptor is not None:
+            job = self.job_descriptor[1].raw
+            subtitle.setText(job['script_description'])
+        date_note.setText(tr(f"Generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d')} UTC"))
+
+        exporter = QgsLayoutExporter(self.layout)
+
+        if mode == DatasetExportMode.PDF:
+            pdf_path = f"{base_data_directory}/map.pdf"
+            result = exporter.exportToPdf(
+                pdf_path, QgsLayoutExporter.PdfExportSettings())
+            if result == QgsLayoutExporter.ExportResult.Success:
+                log(f"Successfully exported map layout to pdf {pdf_path}")
+                QtWidgets.QMessageBox.information(None, tr("Info"), tr(f"Successfully exported map to {pdf_path}"))
+            else:
+                log(f"Problem exporting map layout to pdf {pdf_path}")
+                QtWidgets.QMessageBox.information(None, tr("Problem"), tr(f"Problem exporting map to {pdf_path}"))

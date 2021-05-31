@@ -27,6 +27,7 @@ from qgis.core import (
     QgsProject,
     QgsPrintLayout,
     QgsReadWriteContext,
+    QgsReport,
     QgsSettings,
 )
 from qgis.utils import iface
@@ -268,7 +269,7 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
         self.setupUi(self)
         self.setAutoFillBackground(True)  # allows hiding background prerendered pixmap
         self.dataset = dataset
-        self.map_layout = MapLayout(dataset)
+        self.map_layout = MapReportLayout(dataset)
 
         self.name_le.setText(self.dataset.name)
         self.state_le.setText(self.dataset.status)
@@ -327,7 +328,7 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
                 self.export_tool_button.setDefaultAction(export_action)
 
 
-class MapLayout(QObject):
+class MapReportLayout(QObject):
     def __init__(self, dataset: Dataset):
         self.dataset = dataset
         self.project = QgsProject.instance()
@@ -337,14 +338,14 @@ class MapLayout(QObject):
         self.job_descriptor = Jobs().jobById(str(self.dataset.run_id))
 
     def open_layout(self):
-        log(f"Map layout opened")
+        log(f"Map report layout opened")
 
     def export_layout(self, mode: DatasetExportMode):
-        log(f"Exporting map")
+        log(f"Exporting report")
         template = os.path.join(
             os.path.join(os.path.dirname(
                 os.path.dirname(os.path.realpath(__file__))),
-                'data'), 'map_template_landscape2.qpt')
+                'data'), 'report_template_landscape.qpt')
 
         base_data_directory = QgsSettings().value(
             "trends_earth/advanced/base_data_directory",
@@ -359,31 +360,53 @@ class MapLayout(QObject):
         checked_layers = [layer.name() for layer in QgsProject().instance().layerTreeRoot().children() if
                           layer.isVisible()]
         map_layers = [layer for layer in QgsProject().instance().mapLayers().values() if
-                       layer.name() in checked_layers]
-        legend = self.layout.itemById('legend')
-        root = QgsLayerTree()
-        for layer in map_layers:
-            root.addLayer(layer)
-        legend.model().setRootGroup(root)
+                      layer.name() in checked_layers]
+        # legend = self.layout.itemById('legend')
+        # root = QgsLayerTree()
+        # for layer in map_layers:
+        #     root.addLayer(layer)
+        # legend.model().setRootGroup(root)
 
-        title = self.layout.itemById('title')
-        subtitle = self.layout.itemById('subtitle')
-        date_note = self.layout.itemById('date_note')
+        first_title = self.layout.itemById('first_title')
+        first_subtitle = self.layout.itemById('first_subtitle')
+        second_title = self.layout.itemById('second_title')
+        second_subtitle = self.layout.itemById('second_subtitle')
+        first_date_note = self.layout.itemById('first_date_note')
+        second_date_note = self.layout.itemById('second_date_note')
 
         if self.job_descriptor is not None:
             job = self.job_descriptor[1].raw
-            subtitle.setText(job['script_description'])
-        date_note.setText(tr(f"Generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d')} UTC"))
+            first_subtitle.setText(job['script_name'])
+            second_subtitle.setText(job['script_name'])
+        first_date_note.setText(tr(f"Generated on {datetime.now().strftime('%Y-%m-%d')}"))
+        second_date_note.setText(tr(f"Generated on {datetime.now().strftime('%Y-%m-%d')}"))
 
         exporter = QgsLayoutExporter(self.layout)
+        result = None
 
         if mode == DatasetExportMode.PDF:
-            pdf_path = f"{base_data_directory}/map.pdf"
+            report_path = f"{base_data_directory}/report.pdf"
             result = exporter.exportToPdf(
-                pdf_path, QgsLayoutExporter.PdfExportSettings())
+                report_path, QgsLayoutExporter.PdfExportSettings())
+        elif mode == DatasetExportMode.PNG:
+            report_path = f"{base_data_directory}/report.png"
+            image_export_settings = QgsLayoutExporter.ImageExportSettings()
+            image_export_settings.pages = [0, 1]
+            result = exporter.exportToImage(
+                report_path, image_export_settings)
+
+        elif mode == DatasetExportMode.ZIP:
+            pass
+
+        if mode == DatasetExportMode.CUSTOM:
+            self.layout.setName("landscape")
+            self.manager.addLayout(self.layout)
+            iface.openLayoutDesigner(self.layout)
+
+        else:
             if result == QgsLayoutExporter.ExportResult.Success:
-                log(f"Successfully exported map layout to pdf {pdf_path}")
-                QtWidgets.QMessageBox.information(None, tr("Info"), tr(f"Successfully exported map to {pdf_path}"))
+                log(f"Successfully exported map layout to pdf {report_path}")
+                QtWidgets.QMessageBox.information(None, tr("Info"), tr(f"Successfully exported map to {report_path}"))
             else:
-                log(f"Problem exporting map layout to pdf {pdf_path}")
-                QtWidgets.QMessageBox.information(None, tr("Problem"), tr(f"Problem exporting map to {pdf_path}"))
+                log(f"Problem exporting map layout to pdf {report_path}")
+                QtWidgets.QMessageBox.information(None, tr("Problem"), tr(f"Problem exporting map to {report_path}"))

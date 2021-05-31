@@ -251,7 +251,8 @@ class DatasetEditorWidget(QWidget, Ui_WidgetDatasetItem):
 
     def show_details(self):
         log(f"Details button clicked for dataset {self.dataset.name!r}")
-        DatasetDetailsWidget(self.dataset, parent=self).exec_()
+        self.close()
+        result = DatasetDetailsWidget(self.dataset).exec_()
 
     def load_dataset(self):
         log(f"Load button clicked for dataset {self.dataset.name!r}")
@@ -267,7 +268,7 @@ class DatasetDetailsWidget(QtWidgets.QDialog, Ui_WidgetDatasetItemDetails):
     def __init__(self, dataset: Dataset, parent=None):
         super(DatasetDetailsWidget, self).__init__(parent)
         self.setupUi(self)
-        self.setAutoFillBackground(True)  # allows hiding background prerendered pixmap
+
         self.dataset = dataset
         self.map_layout = MapReportLayout(dataset)
 

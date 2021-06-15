@@ -86,6 +86,9 @@ class JobManager(QtCore.QObject):
         return Path(
             settings_manager.get_value(Setting.BASE_DIR)) / "datasets"
 
+    @property
+    def exports_dir(self) -> Path:
+        return Path(settings_manager.get_value(Setting.BASE_DIR)) / "exported"
 
     def clear_known_jobs(self):
         self._known_running_jobs = {}

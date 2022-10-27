@@ -63,5 +63,5 @@ jobs:
       - name: Run test suite
         run: |
           docker-compose exec -T qgis-testing-environment sh -c "apt-get update"
-          docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y libx11-xcb1"
+          docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y python3-opencv"
           docker-compose exec -T qgis-testing-environment qgis_testrunner.sh LDMP.test.testplugin

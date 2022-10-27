@@ -63,5 +63,5 @@ jobs:
       - name: Run test suite
         run: |
           docker-compose exec -T qgis-testing-environment sh -c "apt-get update"
-          docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y python3-pyqt5.qtmultimedia ffmpeg imagemagick"
+          docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y python-opencv-headless python3-pyqt5.qtmultimedia ffmpeg imagemagick"
           docker-compose exec -T qgis-testing-environment qgis_testrunner.sh test_suite.test_package

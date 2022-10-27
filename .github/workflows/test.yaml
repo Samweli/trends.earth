@@ -58,6 +58,8 @@ jobs:
           cat .env
           docker pull "${IMAGE}":${{ matrix.qgis_version_tag }}
           docker-compose up -d
+          docker exec qgis-testing-environment sh -c "apt-get update"
+          docker exec qgis-testing-environment sh -c "apt-get install -y python3-pyqt5.qtmultimedia ffmpeg imagemagick"
           sleep 10
 
       - name: Run test suite

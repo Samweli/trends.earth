@@ -20,9 +20,11 @@ import zipfile
 from pathlib import Path
 
 import requests
-from qgis.PyQt import QtCore
-from qgis.PyQt import QtWidgets
+from qgis.PyQt import QtWidgets, QtCore, QtNetwork
+
 from qgis.utils import iface
+
+from qgis.core import QgsNetworkAccessManager
 
 from .api import get_header
 from .logger import log
@@ -299,6 +301,8 @@ class DownloadWorker(AbstractWorker):
     def work(self):
         self.toggle_show_progress.emit(True)
         self.toggle_show_cancel.emit(True)
+
+        print('downloader work')
 
         resp = requests.get(self.url, stream=True)
         if resp.status_code != 200:

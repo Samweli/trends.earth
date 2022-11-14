@@ -26,6 +26,8 @@ from qgis.utils import iface
 
 from qgis.core import QgsNetworkAccessManager
 
+from .logger import log
+
 from .api import get_header
 from .logger import log
 from .worker import AbstractWorker

@@ -15,9 +15,9 @@
 import os
 import json
 
-from qgis.PyQt.QtCore import QTimer, Qt
-from qgis.PyQt.QtWidgets import QMessageBox, QApplication
-from qgis.PyQt.QtTest import QTest
+# from qgis.PyQt.QtCore import QTimer, Qt
+# from qgis.PyQt.QtWidgets import QMessageBox, QApplication
+# from qgis.PyQt.QtTest import QTest
 
 from LDMP.layers import add_layer, get_file_metadata
 
@@ -35,16 +35,16 @@ with open(
 
 
 # Ensure any message boxes that open are closed within 1 second
-def close_msg_boxes():
-    for w in QApplication.topLevelWidgets():
-        if isinstance(w, QMessageBox):
-            print("Closing message box")
-            QTest.keyClick(w, Qt.Key_Enter)
-
-
-timer = QTimer()
-timer.timeout.connect(close_msg_boxes)
-timer.start(1000)
+# def close_msg_boxes():
+#     for w in QApplication.topLevelWidgets():
+#         if isinstance(w, QMessageBox):
+#             print("Closing message box")
+#             QTest.keyClick(w, Qt.Key_Enter)
+#
+#
+# timer = QTimer()
+# timer.timeout.connect(close_msg_boxes)
+# timer.start(1000)
 
 
 # Used to load default bands from test datasets onto the map

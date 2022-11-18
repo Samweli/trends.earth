@@ -1,20 +1,30 @@
-#!/bin/bash
-# Run docker tests on your local machine
+#!/usr/bin/env bash
 
-PLUGIN_NAME="LDMP"
+QGIS_IMAGE=qgis/qgis
 
-DOCKER_RUN_COMMAND="docker exec -it trendsearth_qgis_1 sh -c"
+QGIS_IMAGE_V_3_26=release-3_26
+QGIS_IMAGE_V_3_20=release-3_20
 
-docker-compose down -v
-docker-compose up -d
-docker-compose ps
+QGIS_VERSION_TAGS=($QGIS_IMAGE_V_3_26)
 
-sleep 10
+export IMAGE=$QGIS_IMAGE
 
-# Setup
-$DOCKER_RUN_COMMAND "qgis_setup.sh $PLUGIN_NAME"
-$DOCKER_RUN_COMMAND "cd /tests_directory && git submodule update --init --recursive"
-$DOCKER_RUN_COMMAND "cd /tests_directory && paver setup && paver package --tests"
+for TAG in "${QGIS_VERSION_TAGS[@]}"
+do
+    echo "Running tests for QGIS $TAG"
+    export QGIS_VERSION_TAG=$TAG
+    export WITH_PYTHON_PEP=false
+    export ON_TRAVIS=false
+    export MUTE_LOGS=true
 
-# Run the tests
-$DOCKER_RUN_COMMAND "DISPLAY=:99 QT_X11_NO_MITSHM=1 GSHOSTNAME=boundless-test qgis_testrunner.sh LDMP.test.testplugin"
+    docker-compose up -d
+
+    sleep 10
+#
+#    docker-compose exec -T qgis-testing-environment sh -c "apt-get update"
+#    docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y python3-opencv"
+
+    docker-compose exec -T qgis-testing-environment qgis_testrunner.sh LDMP.test_v2.plugin
+    docker-compose down
+
+done

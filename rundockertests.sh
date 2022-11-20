@@ -26,7 +26,7 @@ do
 #     docker-compose exec -T qgis-testing-environment sh -c "pip uninstall opencv-python"
 #     docker-compose exec -T qgis-testing-environment sh -c "pip install opencv-python-headless"
 
-    docker-compose exec -T qgis-testing-environment qgis_testrunner.sh test_suite.test_package
+    docker-compose exec -T qgis-testing-environment qgis_testrunner.sh LDMP.test.testplugin
     docker-compose down
 
 done

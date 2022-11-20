@@ -2,7 +2,7 @@
 
 QGIS_IMAGE=qgis/qgis
 
-QGIS_IMAGE_V_3_26=release-3_26
+QGIS_IMAGE_V_3_26=latest
 QGIS_IMAGE_V_3_20=release-3_20
 
 QGIS_VERSION_TAGS=($QGIS_IMAGE_V_3_26)
@@ -22,9 +22,11 @@ do
     sleep 10
 #
 #    docker-compose exec -T qgis-testing-environment sh -c "apt-get update"
-#    docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y python3-opencv"
+#     docker-compose exec -T qgis-testing-environment sh -c "apt-get install -y python3-opencv"
+#     docker-compose exec -T qgis-testing-environment sh -c "pip uninstall opencv-python"
+#     docker-compose exec -T qgis-testing-environment sh -c "pip install opencv-python-headless"
 
-    docker-compose exec -T qgis-testing-environment qgis_testrunner.sh LDMP.test_v2.plugin
+    docker-compose exec -T qgis-testing-environment qgis_testrunner.sh test_suite.test_package
     docker-compose down
 
 done

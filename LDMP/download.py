@@ -24,7 +24,7 @@ from qgis.PyQt import QtWidgets, QtCore, QtNetwork
 
 from qgis.utils import iface
 
-from qgis.core import QgsNetworkAccessManager
+from qgis.core import QgsNetworkAccessManager, QgsApplication, QgsSettings
 
 from .logger import log
 
@@ -304,7 +304,33 @@ class DownloadWorker(AbstractWorker):
         self.toggle_show_progress.emit(True)
         self.toggle_show_cancel.emit(True)
 
-        print('downloader work')
+        # print('downloader work')
+        # settings = QgsSettings()
+        # auth_id = settings.value('trendsearth/auth')
+        #
+        # print(str(self.url))
+        # # print('headers: ' + str(self.headers))
+        # # print('payload: ' + str(self.payload))
+        #
+        # qurl = QtCore.QUrl(self.url)
+        #
+        # network_manager = QgsNetworkAccessManager()
+        # #network_manager.setTimeout(600000)
+        #
+        # network_request = QtNetwork.QNetworkRequest(qurl)
+        #
+        # auth_manager = QgsApplication.authManager()
+        # auth_added, _ = auth_manager.updateNetworkRequest(
+        #     network_request,
+        #     auth_id
+        # )
+        #
+        # print('worker get')
+        #
+        # resp = network_manager.blockingGet(qurl)
+        #
+        # print('worker response')
+        # print(str(resp))
 
         resp = requests.get(self.url, stream=True)
         if resp.status_code != 200:

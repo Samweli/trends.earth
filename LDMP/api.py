@@ -20,8 +20,8 @@ from urllib.parse import quote_plus
 import requests
 import backoff
 
-from qgis.core import QgsApplication, QgsTask
-from qgis.PyQt import QtCore, QtWidgets
+from qgis.core import QgsApplication, QgsNetworkAccessManager, QgsSettings, QgsTask
+from qgis.PyQt import QtCore, QtNetwork, QtWidgets
 from qgis.utils import iface
 
 from . import auth, conf
@@ -47,20 +47,38 @@ class RequestTask(QgsTask):
         self.url = url
         self.method = method
         self.payload = payload
-        self.headers = headers
+        self.headers = headers or {}
         self.exception = None
         self.resp = None
 
     def run(self):
         try:
+            qurl = QtCore.QUrl(self.url)
+            network_manager = QgsNetworkAccessManager.instance()
+
+            network_request = QtNetwork.QNetworkRequest(qurl)
+            network_request.setHeader(
+                QtNetwork.QNetworkRequest.ContentTypeHeader,
+                "application/json"
+            )
+
+            if self.headers.get('Authorization'):
+                network_request.setRawHeader(
+                    b'Authorization',
+                    bytes(self.headers.get('Authorization'), encoding='utf-8')
+                )
+
             if self.method == "get":
-                self.resp = requests.get(
-                    self.url, json=self.payload, headers=self.headers, timeout=TIMEOUT
-                )
+                self.resp = network_manager.blockingGet(network_request)
+
             elif self.method == "post":
-                self.resp = requests.post(
-                    self.url, json=self.payload, headers=self.headers, timeout=TIMEOUT
-                )
+                settings = QgsSettings()
+                auth_id = settings.value('trendsearth/auth')
+                doc = QtCore.QJsonDocument(self.payload)
+
+                request_data = doc.toJson(QtCore.QJsonDocument.Compact)
+                self.resp = network_manager.blockingPost(network_request, request_data, authCfg=auth_id)
+
             elif self.method == "update":
                 self.resp = requests.update(
                     self.url, json=self.payload, headers=self.headers, timeout=TIMEOUT
@@ -111,7 +129,10 @@ class RequestTask(QgsTask):
                     )
 
         if self.resp is not None:
-            log(f'API response from "{self.method}" request: {self.resp.status_code}')
+            status_code = self.resp.attribute(
+                QtNetwork.QNetworkRequest.HttpStatusCodeAttribute
+            )
+            log(f'API response from "{self.method}" request: {status_code}')
         else:
             log(f'API response from "{self.method}" request was None')
 
@@ -134,7 +155,7 @@ def clean_api_response(resp):
         try:
             # JSON conversion will fail if the server didn't return a json
             # response
-            response = resp.json().copy()
+            response = json.loads(resp.content().data())
 
             if "password" in response:
                 response["password"] = "**REMOVED**"
@@ -146,25 +167,6 @@ def clean_api_response(resp):
             response = resp.text
 
     return response
-
-
-def get_error_status(resp):
-    try:
-        # JSON conversion will fail if the server didn't return a json
-        # response
-        resp = resp.json()
-    except ValueError:
-        return ("Unknown error", None)
-    status = resp.get("status", None)
-
-    if not status:
-        status = resp.get("status_code", "None")
-    desc = resp.get("detail", None)
-
-    if not desc:
-        desc = resp.get("description", "Generic error")
-
-    return (desc, status)
 
 
 def login(authConfigId=None):
@@ -314,10 +316,13 @@ def call_api(endpoint, method="get", payload=None, use_token=False):
         resp = None
 
     if resp != None:
-        if resp.status_code == 200:
-            ret = resp.json()
+        status_code = resp.attribute(
+            QtNetwork.QNetworkRequest.HttpStatusCodeAttribute
+        )
+        if status_code == 200:
+            ret = json.loads(resp.content().data())
         else:
-            desc, status = get_error_status(resp)
+            desc, status = resp.error(), resp.errorString()
             err_msg = "Error: {} (status {}).".format(desc, status)
             log(err_msg)
             """
@@ -337,11 +342,13 @@ def get_header(url):
 
     if resp != None:
         log(f'Response from "{url}" header request: {resp.status_code}')
-
-        if resp.status_code == 200:
-            ret = resp.headers
+        status_code = resp.attribute(
+            QtNetwork.QNetworkRequest.HttpStatusCodeAttribute
+        )
+        if status_code == 200:
+            ret = json.loads(resp.content().data())
         else:
-            desc, status = get_error_status(resp)
+            desc, status = resp.error(), resp.errorString()
             iface.messageBar().pushCritical(
                 "Trends.Earth", "Error: {} (status {}).".format(desc, status)
             )

@@ -53,25 +53,18 @@ class RequestTask(QgsTask):
         self.url = url
         self.method = method
         self.payload = payload
-        self.headers = headers
+        self.headers = headers or {}
         self.exception = None
         self.resp = None
 
     def run(self):
-
-        print('perform request')
-
         try:
             settings = QgsSettings()
             auth_id = settings.value('trendsearth/auth')
 
-            print(str(self.url))
-            #print('headers: ' + str(self.headers))
-            #print('payload: ' + str(self.payload))
-
             qurl = QtCore.QUrl(self.url)
 
-            network_manager = QgsNetworkAccessManager()
+            network_manager = QgsNetworkAccessManager().instance()
             network_manager.setTimeout(600000)
 
             network_request = QtNetwork.QNetworkRequest(qurl)
@@ -82,12 +75,11 @@ class RequestTask(QgsTask):
                 auth_id
             )
 
-            if len(self.headers) == 0:
-                network_request.setHeader(
-                    QtNetwork.QNetworkRequest.ContentTypeHeader,
-                    "application/json"
-                )
-            else:
+            network_request.setHeader(
+                QtNetwork.QNetworkRequest.ContentTypeHeader,
+                "application/json"
+            )
+            if len(self.headers) > 0:
                 network_request.setRawHeader(
                     QtCore.QByteArray(b'Authorization'),
                     QtCore.QByteArray(
@@ -109,37 +101,9 @@ class RequestTask(QgsTask):
 
                 print('post')
 
-                print('\n\nPayload')
-                print(str(self.payload))
-
-                # Converts the dict to json
-                # obj = {}
-                # for key in self.payload:
-                #     obj[key] = self.payload[key]
-                # doc = QtCore.QJsonDocument(obj)
-                # request_data = doc.toJson()
-
-                #obj = self.convert_dict_to_json(self.payload)
-
-                #print("obj")
-                #print(str(self.payload))
-
                 doc = QtCore.QJsonDocument(self.payload)
-
-                print('doc')
-                print(str(doc))
-
                 request_data = doc.toJson(QtCore.QJsonDocument.Compact)
-
-                print('\n\nRequest data')
-                print(str(request_data))
-
-                print('\n\n')
-
                 self.resp = network_manager.blockingPost(network_request, request_data)
-
-                print('content')
-                print(str(self.resp.content()))
 
                 # self.resp = requests.post(
                 #     self.url, json=self.payload, headers=self.headers, timeout=TIMEOUT
@@ -210,10 +174,6 @@ class RequestTask(QgsTask):
 
         if self.resp is not None:
             log(f'API response from "{self.method}" request: {self.resp.error()}')
-
-            # print(f'API response from "{self.method}" request: {self.resp.status_code}')
-            #
-            # log(f'API response from "{self.method}" request: {self.resp.status_code}')
         else:
             log(f'API response from "{self.method}" request was None')
 
@@ -222,29 +182,6 @@ class RequestTask(QgsTask):
         #         f'API response from "{self.method}" request (data): '
         #         f'{clean_api_response(self.resp)}'
         #     )
-
-    def convert_dict_to_json(self, dict_data):
-
-        print('convert')
-
-        obj = {}
-        for key in dict_data:
-            value = dict_data[key]
-
-            print('key: ' + str(key))
-            print('\tvalue: ' + str(value))
-            if type(value) is dict:
-                #print('\t\tYES')
-                inner_obj = self.convert_dict_to_json(value)
-                obj[key] = inner_obj
-            else:
-                obj[key] = dict_data[key]
-
-        #doc = QtCore.QJsonDocument(obj)
-        #request_data = doc.toJson()
-
-        return obj
-
 
 ###############################################################################
 # Other helper functions for api calls
@@ -270,29 +207,6 @@ def clean_api_response(resp):
             response = resp.text
 
     return response
-
-
-def get_error_status(resp):
-    try:
-        # JSON conversion will fail if the server didn't return a json
-        # response
-        #resp = resp.json()
-
-        resp = resp.content()
-        resp = json.load(io.BytesIO(resp))
-
-    except ValueError:
-        return ("Unknown error", None)
-    status = resp.get("status", None)
-
-    if not status:
-        status = resp.get("status_code", "None")
-    desc = resp.get("detail", None)
-
-    if not desc:
-        desc = resp.get("description", "Generic error")
-
-    return (desc, status)
 
 
 def login(authConfigId=None):
@@ -442,15 +356,14 @@ def call_api(endpoint, method="get", payload=None, use_token=False):
         resp = None
 
     if resp != None:
-        #if resp.status_code == 200:
-        if resp.error() == QtNetwork.QNetworkReply.NoError:
-            #ret = resp.json()
-
+        status_code = resp.attribute(
+            QtNetwork.QNetworkRequest.HttpStatusCodeAttribute
+        )
+        if status_code == 200:
             ret = resp.content()
             ret = json.load(io.BytesIO(ret))
-
         else:
-            desc, status = get_error_status(resp)
+            desc, status = resp.error(), resp.errorString()
             err_msg = "Error: {} (status {}).".format(desc, status)
             log(err_msg)
             """
@@ -471,10 +384,13 @@ def get_header(url):
     if resp != None:
         log(f'Response from "{url}" header request: {resp.status_code}')
 
-        if resp.status_code == 200:
-            ret = resp.headers
+        status_code = resp.attribute(
+            QtNetwork.QNetworkRequest.HttpStatusCodeAttribute
+        )
+        if status_code == 200:
+            ret = json.loads(resp.content().data())
         else:
-            desc, status = get_error_status(resp)
+            desc, status = resp.error(), resp.errorString()
             iface.messageBar().pushCritical(
                 "Trends.Earth", "Error: {} (status {}).".format(desc, status)
             )

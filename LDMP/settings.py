@@ -800,12 +800,16 @@ class DlgSettingsRegister(QtWidgets.QDialog, Ui_DlgSettingsRegister):
 
             return
 
+        print('Perform register')
+
         resp = api.register(
             self.email.text(),
             self.name.text(),
             self.organization.text(),
             self.country.currentText(),
         )
+
+        print('register response: ' + str(resp))
 
         if resp:
             self.close()

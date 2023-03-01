@@ -235,12 +235,13 @@ class TrendsEarthSettings(Ui_DlgSettings, QgsOptionsPageWidget):
                 self.dock_widget.refresh_after_cache_update()
 
         offline_mode = settings_manager.get_value(Setting.OFFLINE_MODE)
-        if offline_mode:
-            self.dock_widget.pushButton_download.setEnabled(False)
-            self.dock_widget.setWindowTitle(DOCK_TITLE_OFFLINE)
-        else:
-            self.dock_widget.pushButton_download.setEnabled(True)
-            self.dock_widget.setWindowTitle(DOCK_TITLE)
+        if self.dock_widget:
+            if offline_mode:
+                self.dock_widget.pushButton_download.setEnabled(False)
+                self.dock_widget.setWindowTitle(DOCK_TITLE_OFFLINE)
+            else:
+                self.dock_widget.pushButton_download.setEnabled(True)
+                self.dock_widget.setWindowTitle(DOCK_TITLE)
 
     def closeEvent(self, event):
         self.widgetSettingsAdvanced.closeEvent(event)
@@ -1153,7 +1154,6 @@ class WidgetSettingsAdvanced(QtWidgets.QWidget, Ui_WidgetSettingsAdvanced):
 
     def update_settings(self):
         """Store the current value of each setting in QgsSettings"""
-        log(f"poll remote: {self.polling_frequency_gb.isChecked()}")
         settings_manager.write_value(
             Setting.POLL_REMOTE, self.polling_frequency_gb.isChecked()
         )
@@ -1212,7 +1212,7 @@ class WidgetSettingsAdvanced(QtWidgets.QWidget, Ui_WidgetSettingsAdvanced):
         )
 
     def set_offline_mode_states(self):
-        """This funtion is called when offline mode is enabled or disabled.
+        """This function is called when offline mode is enabled or disabled.
         If offline mode is enabled, then all settings related to online
         requests (e.g. download remote datasets or polling the server) will
         be disabled as well. The login section will also be disabled.
@@ -1223,11 +1223,14 @@ class WidgetSettingsAdvanced(QtWidgets.QWidget, Ui_WidgetSettingsAdvanced):
         if self.cb_offline_mode.isChecked():
             # Offline mode is enabled
             self.download_remote_datasets_chb.setEnabled(False)
-            self.download_remote_datasets_chb.setChecked(False)
+            self.download_remote_datasets_chb.setChecked(
+                settings_manager.get_value(Setting.DOWNLOAD_RESULTS))
 
             # Polling frequency settings
             self.polling_frequency_gb.setEnabled(False)
-            self.polling_frequency_gb.setChecked(False)
+            self.polling_frequency_gb.setChecked(
+                settings_manager.get_value(Setting.POLL_REMOTE)
+            )
 
             # Login settings
             self.group_box.setEnabled(False)
@@ -1238,11 +1241,14 @@ class WidgetSettingsAdvanced(QtWidgets.QWidget, Ui_WidgetSettingsAdvanced):
         else:
             # Offline mode is disabled
             self.download_remote_datasets_chb.setEnabled(True)
-            self.download_remote_datasets_chb.setChecked(True)
+            self.download_remote_datasets_chb.setChecked(
+                settings_manager.get_value(Setting.DOWNLOAD_RESULTS))
 
             # Polling frequency settings
             self.polling_frequency_gb.setEnabled(True)
-            self.polling_frequency_gb.setChecked(True)
+            self.polling_frequency_gb.setChecked(
+                settings_manager.get_value(Setting.POLL_REMOTE)
+            )
 
             # Login settings
             self.group_box.setEnabled(True)

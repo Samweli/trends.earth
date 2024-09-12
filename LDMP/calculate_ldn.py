@@ -20,10 +20,12 @@ import qgis.gui
 import te_algorithms.gdal.land_deg.config as ld_config
 from qgis.core import QgsGeometry
 from qgis.PyQt import QtCore, QtWidgets, uic
-from te_schemas.algorithms import ExecutionScript
+from te_schemas.algorithms import AlgorithmRunMode, ExecutionScript
 from te_schemas.land_cover import LCLegendNesting, LCTransitionDefinitionDeg
 from te_schemas.productivity import ProductivityMode
 
+
+from .tasks import create_task
 from . import conf, lc_setup
 from .calculate import DlgCalculateBase
 from .jobs.manager import job_manager
@@ -623,7 +625,13 @@ class DlgCalculateOneStep(DlgCalculateBase, DlgCalculateOneStepUi):
         self.close()
 
         for payload in payloads:
-            resp = job_manager.submit_remote_job(payload, self.script.id)
+
+            resp = create_task(
+                job_manager,
+                payload,
+                self.script.id,
+                AlgorithmRunMode.REMOTE
+            )
 
             if resp:
                 main_msg = "Submitted"
@@ -1212,7 +1220,13 @@ class DlgCalculateLDNErrorRecode(DlgCalculateBase, DlgCalculateLdnErrorRecodeUi)
         #
         # self.close()
         #
-        # resp = job_manager.submit_remote_job(payload, self.script.id)
+
+        # resp = create_task(
+        #     job_manager,
+        #     payload,
+        #     self.script.id,
+        #     AlgorithmRunMode.REMOTE,
+        # )
         #
         # if resp:
         #     main_msg = "Submitted"

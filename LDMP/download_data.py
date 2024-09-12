@@ -272,8 +272,6 @@ class DlgDownload(calculate.DlgCalculateBase, DlgDownloadUi):
                 "task_notes": "",
             }
 
-
-
             resp = create_task(
                 job_manager,
                 payload,

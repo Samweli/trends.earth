@@ -34,6 +34,10 @@ jobs:
       - name: Plugin path details
         id: get-zip-details
         run: |
+          echo "zip file location"
+          echo "$( ls "$GITHUB_WORKSPACE"/docs/plugin/package )"
+          echo "$( ls docs/plugin/package )"
+
           echo "::set-output name=ZIP_PATH::docs/plugin/package/$(ls docs/plugin/package)\n"
           echo "::set-output name=ZIP_NAME::$(ls docs/plugin/package)"
 
@@ -56,8 +60,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           ARTIFACT_URL: ${{ steps.artifact-upload-step.outputs.artifact-url }}
         run: |
-          echo " artifact url - "
-          echo "$( "$ARTIFACT_URL" )"
+          echo " artifact url - $ARTIFACT_URL"
           invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$ARTIFACT_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')"
           echo " " >> docs/repository/plugins.xml 
           git config --global user.name "github-actions[bot]"

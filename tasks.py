@@ -1480,9 +1480,10 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
         can use to install the plugin in QGIS.
 
     """
-    repo_base_dir = os.path.join(c.plugin.source_dir, "docs" , "repository")
+    repo_base_dir = Path(os.path.join(c.plugin.source_dir, "docs" , "repository"))
+
     repo_base_dir.mkdir(parents=True, exist_ok=True)
-    metadata = _get_metadata()
+    metadata = _get_metadata(c)
     fragment_template = """
             <pyqgis_plugin name="{name}" version="{version}">
                 <description><![CDATA[{description}]]></description>
@@ -1507,7 +1508,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
     if prerelease:
         all_releases = [{
             "pre_release": prerelease,
-            "tag_name": c.version,
+            "tag_name": get_version(c),
             "url": prerelease_url,
             "published_at": datetime.strptime(
                 prerelease_time, "%Y-%m-%dT%H:%M:%SZ"
@@ -1516,16 +1517,13 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
     else:
         all_releases = _get_existing_releases(context=c)
 
-    print(f"Found {len(all_releases)} release(s)...")
-
     if prerelease:
         target_releases = all_releases
     else:
         target_releases = _get_latest_releases(all_releases)
 
     for release in [r for r in target_releases if r is not None]:
-        tag_name = release.tag_name
-        print(f"Processing release {tag_name}...")
+        tag_name = release['tag_name']
         fragment = fragment_template.format(
             name=metadata.get("name"),
             version=tag_name.replace("v", ""),
@@ -1533,12 +1531,12 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
             about=metadata.get("about"),
             qgis_minimum_version=metadata.get("qgisMinimumVersion"),
             homepage=metadata.get("homepage"),
-            filename=release.url.rpartition("/")[-1],
+            filename=release.get('url').rpartition("/")[-1],
             icon=metadata.get("icon", ""),
             author=metadata.get("author"),
-            download_url=release.url,
-            update_date=release.published_at,
-            experimental=release.pre_release,
+            download_url=release.get('url'),
+            update_date=release.get('published_at'),
+            experimental=release.get('pre_release'),
             deprecated=metadata.get("deprecated"),
             tracker=metadata.get("tracker"),
             repository=metadata.get("repository"),
@@ -1548,7 +1546,6 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
     contents = "\n".join((contents, "</plugins>"))
     repo_index = repo_base_dir / "plugins.xml"
     repo_index.write_text(contents, encoding="utf-8")
-    print(f"Plugin repo XML file saved at {repo_index}")
 
     return contents
 
@@ -1571,6 +1568,8 @@ def _get_metadata(c):
                 continue
 
             # Split key and value
+            if '=' not in line:
+                continue
             key, value = line.split("=", 1)
             metadata[key.strip()] = value.strip()
 

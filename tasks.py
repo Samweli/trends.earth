@@ -1683,10 +1683,11 @@ def _get_latest_releases(
         #'python': 'Python to use for setup and compiling',
         "pip": 'Path to pip (usually "pip" or "pip3"',
         "tag": "Whether to tag on Github",
+        "directory": "Folder to put the zipped file",
     }
 )
 def zipfile_build(
-    c, clean=True, version=3, tests=False, filename=None, pip="pip", tag=False
+    c, clean=True, version=3, tests=False, filename=None, pip="pip", tag=False, directory=None
 ):
     """Create plugin package"""
     set_version(c, modules=True)
@@ -1705,7 +1706,7 @@ def zipfile_build(
     # Make sure compiled versions of translation files are included
     lrelease(c)
 
-    package_dir = c.plugin.package_dir
+    package_dir = c.plugin.package_dir if not directory else directory
 
     if sys.version_info[0] < 3:
         if not os.path.exists(package_dir):

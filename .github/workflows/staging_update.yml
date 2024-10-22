@@ -8,7 +8,6 @@ jobs:
   staging_repository_update:
     name: Build zipfile
     runs-on: ubuntu-latest
-    env:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3

@@ -1480,7 +1480,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
         can use to install the plugin in QGIS.
 
     """
-    repo_base_dir = Path(os.path.join(c.plugin.source_dir, "docs" , "repository"))
+    repo_base_dir = Path(os.path.join(os.path.dirname(c.plugin.source_dir), "docs" , "repository"))
 
     repo_base_dir.mkdir(parents=True, exist_ok=True)
     metadata = _get_metadata(c)

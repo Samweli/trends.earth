@@ -1464,6 +1464,212 @@ exposure, and for reporting on UNCCD Strategic Objective 3.
 
 
 ###############################################################################
+# Create staging repository content
+###############################################################################
+
+
+@task(
+    help={
+        "prerelease": "A pre release for user testing",
+        "prerelease_url": "The URL of the pre release",
+        "prerelease_time": "The time of the pre release",
+    }
+)
+def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prerelease_time=None):
+    """Generates the plugin repository xml file, from which users
+        can use to install the plugin in QGIS.
+
+    """
+    repo_base_dir = os.path.join(c.plugin.source_dir, "docs" , "repository")
+    repo_base_dir.mkdir(parents=True, exist_ok=True)
+    metadata = _get_metadata()
+    fragment_template = """
+            <pyqgis_plugin name="{name}" version="{version}">
+                <description><![CDATA[{description}]]></description>
+                <about><![CDATA[{about}]]></about>
+                <version>{version}</version>
+                <qgis_minimum_version>{qgis_minimum_version}</qgis_minimum_version>
+                <homepage><![CDATA[{homepage}]]></homepage>
+                <file_name>{filename}</file_name>
+                <icon>{icon}</icon>
+                <author_name><![CDATA[{author}]]></author_name>
+                <download_url>{download_url}</download_url>
+                <update_date>{update_date}</update_date>
+                <experimental>{experimental}</experimental>
+                <deprecated>{deprecated}</deprecated>
+                <tracker><![CDATA[{tracker}]]></tracker>
+                <repository><![CDATA[{repository}]]></repository>
+                <tags><![CDATA[{tags}]]></tags>
+                <server>False</server>
+            </pyqgis_plugin>
+    """.strip()
+    contents = "<?xml version = '1.0' encoding = 'UTF-8'?>\n<plugins>"
+    if prerelease:
+        all_releases = [{
+            "pre_release": prerelease,
+            "tag_name": c.version,
+            "url": prerelease_url,
+            "published_at": datetime.strptime(
+                prerelease_time, "%Y-%m-%dT%H:%M:%SZ"
+            ),
+        }]
+    else:
+        all_releases = _get_existing_releases(context=c)
+
+    print(f"Found {len(all_releases)} release(s)...")
+
+    if prerelease:
+        target_releases = all_releases
+    else:
+        target_releases = _get_latest_releases(all_releases)
+
+    for release in [r for r in target_releases if r is not None]:
+        tag_name = release.tag_name
+        print(f"Processing release {tag_name}...")
+        fragment = fragment_template.format(
+            name=metadata.get("name"),
+            version=tag_name.replace("v", ""),
+            description=metadata.get("description"),
+            about=metadata.get("about"),
+            qgis_minimum_version=metadata.get("qgisMinimumVersion"),
+            homepage=metadata.get("homepage"),
+            filename=release.url.rpartition("/")[-1],
+            icon=metadata.get("icon", ""),
+            author=metadata.get("author"),
+            download_url=release.url,
+            update_date=release.published_at,
+            experimental=release.pre_release,
+            deprecated=metadata.get("deprecated"),
+            tracker=metadata.get("tracker"),
+            repository=metadata.get("repository"),
+            tags=metadata.get("tags"),
+        )
+        contents = "\n".join((contents, fragment))
+    contents = "\n".join((contents, "</plugins>"))
+    repo_index = repo_base_dir / "plugins.xml"
+    repo_index.write_text(contents, encoding="utf-8")
+    print(f"Plugin repo XML file saved at {repo_index}")
+
+    return contents
+
+
+def _get_metadata(c):
+    """Reads the metadata properties from the
+       project metadata file 'metadata.txt'.
+
+    :return: plugin metadata
+    :type: Dict
+    """
+    metadata = {}
+    metadata_path = os.path.join(c.plugin.source_dir, "metadata.txt")
+
+    with open(metadata_path, "r") as fh:
+        for line in fh:
+            # Skip empty lines
+            line = line.strip()
+            if not line:
+                continue
+
+            # Split key and value
+            key, value = line.split("=", 1)
+            metadata[key.strip()] = value.strip()
+
+    # Update metadata with additional derived fields
+    metadata.update(
+        {
+            "tags": metadata.get("tags", "").split(", ") if "tags" in metadata else [],
+            "changelog": metadata.get("changelog", ""),
+        }
+    )
+
+    return metadata
+
+
+def _get_existing_releases(context=None):
+    """Gets the existing plugin releases available in the GitHub repository.
+
+    :param context: Application context (optional)
+    :type context: typer.Context (optional)
+
+    :returns: List of GitHub releases in dictionary format
+    :rtype: List[dict]
+    """
+    # Set up the base URL for GitHub releases
+    base_url = "https://api.github.com/repos/Conservation/trends-earth/releases"
+
+    # Start a session with requests
+    session = requests.Session()
+
+    # Get the releases from GitHub
+    response = session.get(base_url)
+
+    releases = []
+    if response.status_code == 200:
+        payload = response.json()
+        for release in payload:
+            zip_download_url = None
+            for asset in release.get("assets", []):
+                if asset.get("content_type") == "application/zip":
+                    zip_download_url = asset.get("browser_download_url")
+                    break
+
+            # Log the URL if context is provided
+            print(f"zip_download_url: {zip_download_url}", context=context)
+
+            # If a zip URL was found, append the release info to the list
+            if zip_download_url:
+                releases.append({
+                    "pre_release": release.get("prerelease", True),
+                    "tag_name": release.get("tag_name"),
+                    "url": zip_download_url,
+                    "published_at": datetime.strptime(
+                        release["published_at"], "%Y-%m-%dT%H:%M:%SZ"
+                    ),
+                })
+    else:
+        # Handle the case where GitHub API returns an error
+        raise Exception(f"Failed to fetch releases: {response.status_code} {response.text}")
+
+    return
+
+
+def _get_latest_releases(
+    current_releases,
+):
+    """Searches for the latest plugin releases from the GitHub plugin releases.
+
+    :param current_releases: Existing plugin releases available in the GitHub repository.
+    :type current_releases: list of dicts
+
+    :returns: Tuple containing the latest stable and experimental releases
+    :rtype: tuple of dicts
+    """
+    latest_experimental = None
+    latest_stable = None
+
+    for release in current_releases:
+        # Check if it's a pre-release (experimental)
+        if release.get("pre_release"):
+            if latest_experimental is not None:
+                if release["published_at"] > latest_experimental["published_at"]:
+                    latest_experimental = release
+            else:
+                latest_experimental = release
+        # Check for stable release (non-pre-release)
+        else:
+            if latest_stable is not None:
+                if release["published_at"] > latest_stable["published_at"]:
+                    latest_stable = release
+            else:
+                latest_stable = release
+
+    return latest_stable, latest_experimental
+
+
+
+
+
+###############################################################################
 # Package plugin zipfile
 ###############################################################################
 

@@ -1,4 +1,4 @@
-name: Create a staging plugin version
+name: Update the staging repository plugin version
 on:
   push:
     tags:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   staging_repository_update:
-    name: Build zipfile
+    name: Staging repository update
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

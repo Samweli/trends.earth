@@ -1705,6 +1705,8 @@ def zipfile_build(
     # Make sure compiled versions of translation files are included
     lrelease(c)
 
+    print(f"Passed zip file directory {directory}")
+
     package_dir = c.plugin.package_dir if not directory else directory
 
     if sys.version_info[0] < 3:
@@ -1728,6 +1730,7 @@ def zipfile_build(
             c.plugin.excludes.extend(c.plugin.tests)
         _make_zip(zf, c)
 
+    print(f"Built zip file name {filename} in folder {Path(filename).parent}")
     return filename
 
 

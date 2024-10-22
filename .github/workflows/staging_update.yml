@@ -26,7 +26,7 @@ jobs:
         run: invoke set-version
 
       - name: Build zipfile
-        run: invoke zipfile-build --filename docs/plugin/LDMP_$GITHUB_REF_NAME.zip
+        run: invoke zipfile-build --filename ${GITHUB_WORKSPACE}/docs/plugin/package/LDMP_$GITHUB_REF_NAME.zip
 
       - name: Plugin path details
         id: get-zip-details

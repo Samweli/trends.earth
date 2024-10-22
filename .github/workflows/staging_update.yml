@@ -53,8 +53,8 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           ARTIFACT_URL: ${{ steps.artifact-upload-step.outputs.artifact-url }}
         run: |
-          echo "$(invoke generate-plugin-repo-xml --prerelease --prerelease-url $(ARTIFACT_URL) --prerelease-time $(date +'%Y-%m-%dT%H:%M:%S') )" >> docs/repository/plugins.xml
-          invoke generate-plugin-repo-xml  --prerelease --prerelease-url $ARTIFACT_URL --prerelease-time $(date +'%Y-%m-%dT%H:%M:%S')
+          echo "$(invoke generate-plugin-repo-xml --prerelease --prerelease-url ARTIFACT_URL --prerelease-time date +'%Y-%m-%dT%H:%M:%S' )" >> docs/repository/plugins.xml
+          invoke generate-plugin-repo-xml  --prerelease --prerelease-url $(ARTIFACT_URL) --prerelease-time $(date +'%Y-%m-%dT%H:%M:%S')
           echo " " >> docs/repository/plugins.xml 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

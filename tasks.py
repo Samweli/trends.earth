@@ -2038,6 +2038,7 @@ ns = Collection(
     compile_files,
     docs_build,
     docs_spellcheck,
+    generate_plugin_repo_xml,
     translate_pull,
     translate_push,
     lrelease,

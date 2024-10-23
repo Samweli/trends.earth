@@ -1584,11 +1584,8 @@ def _get_metadata(c):
     return metadata
 
 
-def _get_existing_releases(context=None):
+def _get_existing_releases():
     """Gets the existing plugin releases available in the GitHub repository.
-
-    :param context: Application context (optional)
-    :type context: typer.Context (optional)
 
     :returns: List of GitHub releases in dictionary format
     :rtype: List[dict]
@@ -1611,9 +1608,6 @@ def _get_existing_releases(context=None):
                 if asset.get("content_type") == "application/zip":
                     zip_download_url = asset.get("browser_download_url")
                     break
-
-            # Log the URL if context is provided
-            print(f"zip_download_url: {zip_download_url}", context=context)
 
             # If a zip URL was found, append the release info to the list
             if zip_download_url:

@@ -1591,7 +1591,7 @@ def _get_existing_releases():
     :rtype: List[dict]
     """
     # Set up the base URL for GitHub releases
-    base_url = "https://api.github.com/repos/Conservation/trends-earth/releases"
+    base_url = "https://api.github.com/repos/Samweli/trends-earth/releases"
 
     # Start a session with requests
     session = requests.Session()

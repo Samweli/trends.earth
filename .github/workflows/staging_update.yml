@@ -38,8 +38,8 @@ jobs:
           echo "$( ls "$GITHUB_WORKSPACE"/build )"
           echo "$( ls build )"
 
-          echo "::set-output name=ZIP_PATH::build$(ls build)\n"
-          echo "::set-output name=ZIP_NAME::$(ls build)"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/build$(ls "$GITHUB_WORKSPACE"/build)"
+          echo "::set-output name=ZIP_NAME::$(ls "$GITHUB_WORKSPACE"/build)"
 
       - name: Uploading plugin build
         id: artifact-upload-step

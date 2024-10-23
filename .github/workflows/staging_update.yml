@@ -29,17 +29,17 @@ jobs:
         run: invoke set-version
 
       - name: Build zipfile
-        run: invoke zipfile-build  --filename LDMP_$GITHUB_REF_NAME.zip --directory ${GITHUB_WORKSPACE}/docs/plugin/package
+        run: invoke zipfile-build  --filename LDMP_$GITHUB_REF_NAME.zip
 
       - name: Plugin path details
         id: get-zip-details
         run: |
           echo "zip file location"
-          echo "$( ls "$GITHUB_WORKSPACE"/docs/plugin/package )"
-          echo "$( ls docs/plugin/package )"
+          echo "$( ls "$GITHUB_WORKSPACE"/build )"
+          echo "$( ls build )"
 
-          echo "::set-output name=ZIP_PATH::docs/plugin/package/$(ls docs/plugin/package)\n"
-          echo "::set-output name=ZIP_NAME::$(ls docs/plugin/package)"
+          echo "::set-output name=ZIP_PATH::build$(ls build)\n"
+          echo "::set-output name=ZIP_NAME::$(ls build)"
 
       - name: Uploading plugin build
         id: artifact-upload-step

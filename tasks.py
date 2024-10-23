@@ -1515,7 +1515,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
             ),
         }]
     else:
-        all_releases = _get_existing_releases(context=c)
+        all_releases = _get_existing_releases()
 
     if prerelease:
         target_releases = all_releases
@@ -1592,6 +1592,7 @@ def _get_existing_releases():
     """
     # Set up the base URL for GitHub releases
     base_url = "https://api.github.com/repos/Samweli/trends-earth/releases"
+
 
     # Start a session with requests
     session = requests.Session()

@@ -37,6 +37,15 @@ jobs:
           echo "zip file location"
           echo "$( ls "$GITHUB_WORKSPACE"/build )"
           echo "$( ls build )"
+          
+          ls $GITHUB_WORKSPACE/build
+          ls build
+          
+          echo "workspace files"
+          echo "$( ls "$GITHUB_WORKSPACE")"
+          
+          ls $GITHUB_WORKSPACE
+
 
           echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/build$(ls "$GITHUB_WORKSPACE"/build)"
           echo "::set-output name=ZIP_NAME::$(ls "$GITHUB_WORKSPACE"/build)"

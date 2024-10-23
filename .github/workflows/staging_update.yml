@@ -34,21 +34,9 @@ jobs:
       - name: Plugin path details
         id: get-zip-details
         run: |
-          echo "zip file location"
-          echo "$( ls "$GITHUB_WORKSPACE"/build )"
-          echo "$( ls build )"
-          
-          ls $GITHUB_WORKSPACE/build
-          ls build
-          
-          echo "workspace files"
-          echo "$( ls "$GITHUB_WORKSPACE")"
-          
-          ls $GITHUB_WORKSPACE
 
-
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/build$(ls "$GITHUB_WORKSPACE"/build)"
-          echo "::set-output name=ZIP_NAME::$(ls "$GITHUB_WORKSPACE"/build)"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME.zip"
+          echo "::set-output name=ZIP_NAME::$(ls LDMP_$GITHUB_REF_NAME.zip)"
 
       - name: Uploading plugin build
         id: artifact-upload-step

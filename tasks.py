@@ -1707,7 +1707,7 @@ def zipfile_build(
 
     print(f"Passed zip file directory {directory}")
 
-    package_dir = c.plugin.package_dir if not directory else directory
+    package_dir = c.plugin.package_dir
 
     if sys.version_info[0] < 3:
         if not os.path.exists(package_dir):
@@ -1730,7 +1730,7 @@ def zipfile_build(
             c.plugin.excludes.extend(c.plugin.tests)
         _make_zip(zf, c)
 
-    print(f"Built zip file name {filename} in folder {Path(filename).parent}")
+    print(f"Built zip file name {filename} in folder {os.path.dirname(filename)}, plugin dir {c.plugin.package_dir}")
     return filename
 
 

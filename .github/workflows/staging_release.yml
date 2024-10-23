@@ -3,6 +3,7 @@ on:
   release:
     types:
       - published
+      - edited
 
 jobs:
   update-staging:
@@ -26,7 +27,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: release
-      - name: Update custom plugin repository to include latest staging version
+      - name: Update custom plugin repository to include latest plugin releases
         run: |          
           echo "$(invoke generate-plugin-repo-xml)" >> docs/repository/plugins.xml
           

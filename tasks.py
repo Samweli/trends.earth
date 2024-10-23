@@ -1730,7 +1730,7 @@ def zipfile_build(
             c.plugin.excludes.extend(c.plugin.tests)
         _make_zip(zf, c)
 
-    print(f"Built zip file name {filename} in folder {os.path.dirname(filename)}, plugin dir {c.plugin.package_dir}")
+    print(f"Built zip file name {filename} in folder {os.path.dirname(filename)}, plugin dir {c.plugin.package_dir}, parent {os.path.dirname(c.plugin.package_dir)}")
     return filename
 
 

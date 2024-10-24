@@ -1612,7 +1612,6 @@ def _get_existing_releases():
 
             # If a zip URL was found, append the release info to the list
             if zip_download_url:
-                print(f"adding a release {release.get("tag_name")}")
                 releases.append({
                     "pre_release": release.get("prerelease", True),
                     "tag_name": release.get("tag_name"),
@@ -1662,8 +1661,6 @@ def _get_latest_releases(
 
 
 
-
-
 ###############################################################################
 # Package plugin zipfile
 ###############################################################################
@@ -1701,8 +1698,6 @@ def zipfile_build(
     # Make sure compiled versions of translation files are included
     lrelease(c)
 
-    print(f"Passed zip file directory {directory}")
-
     package_dir = c.plugin.package_dir
 
     if sys.version_info[0] < 3:
@@ -1726,7 +1721,6 @@ def zipfile_build(
             c.plugin.excludes.extend(c.plugin.tests)
         _make_zip(zf, c)
 
-    print(f"Built zip file name {filename} in folder {os.path.dirname(filename)}, plugin dir {c.plugin.package_dir}, parent {os.path.dirname(c.plugin.package_dir)}, {os.path.abspath(c.plugin.package_dir)}")
     return filename
 
 

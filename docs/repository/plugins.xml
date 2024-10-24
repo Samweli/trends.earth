@@ -6,11 +6,11 @@
                 <version>2.1.17</version>
                 <qgis_minimum_version>3.22</qgis_minimum_version>
                 <homepage><![CDATA[https://trends.earth]]></homepage>
-                <file_name>test</file_name>
+                <file_name>LDMP_v2.1.7dev.zip</file_name>
                 <icon>trends_earth_logo_square_32x32.png</icon>
                 <author_name><![CDATA[Conservation International]]></author_name>
-                <download_url>test</download_url>
-                <update_date>2024-10-22 17:37:32</update_date>
+                <download_url>https://github.com/Samweli/trends.earth/actions/runs/11501885881/artifacts/2099567959</download_url>
+                <update_date>2024-10-24 14:54:35</update_date>
                 <experimental>True</experimental>
                 <deprecated>False</deprecated>
                 <tracker><![CDATA[https://github.com/ConservationInternational/trends.earth/issues]]></tracker>
@@ -18,4 +18,4 @@
                 <tags><![CDATA[['land degradation', 'land degradation neutrality', 'soil carbon', 'productivity', 'land cover', 'reporting', 'LDN', 'SDG', 'UNCCD', '15.3', 'sustainable development goals', 'ldmp']]]></tags>
                 <server>False</server>
             </pyqgis_plugin>
-</plugins>
+</plugins> 

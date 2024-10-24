@@ -1475,7 +1475,7 @@ exposure, and for reporting on UNCCD Strategic Objective 3.
         "prerelease_time": "The time of the pre release",
     }
 )
-def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prerelease_time=None):
+def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prerelease_time=None, prerelease_filename=None):
     """Generates the plugin repository xml file, from which users
         can use to install the plugin in QGIS.
 
@@ -1531,7 +1531,8 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
             about=metadata.get("about"),
             qgis_minimum_version=metadata.get("qgisMinimumVersion"),
             homepage=metadata.get("homepage"),
-            filename=release.get('url').rpartition("/")[-1],
+            filename=release.get('url').rpartition("/")[-1] \
+            if not prerelease_filename else prerelease_filename,
             icon=metadata.get("icon", ""),
             author=metadata.get("author"),
             download_url=release.get('url'),
@@ -1591,8 +1592,7 @@ def _get_existing_releases():
     :rtype: List[dict]
     """
     # Set up the base URL for GitHub releases
-    base_url = "https://api.github.com/repos/Samweli/trends-earth/releases"
-
+    base_url = "https://api.github.com/repos/Samweli/trends.earth/releases"
 
     # Start a session with requests
     session = requests.Session()
@@ -1612,6 +1612,7 @@ def _get_existing_releases():
 
             # If a zip URL was found, append the release info to the list
             if zip_download_url:
+                print(f"adding a release {release.get("tag_name")}")
                 releases.append({
                     "pre_release": release.get("prerelease", True),
                     "tag_name": release.get("tag_name"),
@@ -1624,7 +1625,7 @@ def _get_existing_releases():
         # Handle the case where GitHub API returns an error
         raise Exception(f"Failed to fetch releases: {response.status_code} {response.text}")
 
-    return
+    return releases
 
 
 def _get_latest_releases(
@@ -1641,7 +1642,7 @@ def _get_latest_releases(
     latest_experimental = None
     latest_stable = None
 
-    for release in current_releases:
+    for release in current_releases or []:
         # Check if it's a pre-release (experimental)
         if release.get("pre_release"):
             if latest_experimental is not None:

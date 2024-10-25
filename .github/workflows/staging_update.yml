@@ -29,13 +29,17 @@ jobs:
         run: invoke set-version
 
       - name: Build zipfile
-        run: invoke zipfile-build  --filename LDMP_$GITHUB_REF_NAME.zip
+        run: invoke zipfile-build  --filename LDMP.zip
 
       - name: Plugin path details
         id: get-zip-details
         run: |
+          unzip $GITHUB_WORKSPACE/LDMP.zip
+          mkdir $GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME
+          
+          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME/
 
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME.zip"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME"
           echo "::set-output name=ZIP_NAME::LDMP_$GITHUB_REF_NAME"
 
       - name: Uploading plugin build

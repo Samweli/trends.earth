@@ -34,7 +34,7 @@ jobs:
       - name: Plugin path details
         id: get-zip-details
         run: |
-          unzip $GITHUB_WORKSPACE/LDMP.zip
+          unzip -o $GITHUB_WORKSPACE/LDMP.zip
           mkdir $GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME
           
           cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP_$GITHUB_REF_NAME/

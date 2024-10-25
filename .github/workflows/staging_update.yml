@@ -34,15 +34,13 @@ jobs:
       - name: Get version info
         id: get-version
         run: |
-          echo "::set-output name=VERSION::$(python -c "import os; os.getenv('GITHUG_REF_NAME').replace('v', '')")"
-
+          echo "::set-output name=VERSION::$(python -c "import os; os.getenv('GITHUB_REF_NAME').replace('v', '')")"
 
       - name: Plugin path details
         env:
           VERSION: ${{ steps.get-version.outputs.VERSION }}
         id: get-zip-details
         run: |
-          echo "sr
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
           cat $GITHUB_WORKSPACE/LDMP/metadata.txt
           

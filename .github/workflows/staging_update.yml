@@ -31,16 +31,27 @@ jobs:
       - name: Build zipfile
         run: invoke zipfile-build  --filename LDMP.zip
 
+      - name: Get version info
+        id: get-version
+        run: |
+          echo "::set-output name=VERSION::$(python -c "import os; os.getenv('GITHUG_REF_NAME').replace('v', '')")"
+
+
       - name: Plugin path details
+        env:
+          VERSION: ${{ steps.get-version.outputs.VERSION }}
         id: get-zip-details
         run: |
+          echo "sr
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
-          mkdir $GITHUB_WORKSPACE/LDMP.$GITHUB_REF_NAME
+          cat $GITHUB_WORKSPACE/LDMP/metadata.txt
           
-          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP.$GITHUB_REF_NAME/
+          mkdir $GITHUB_WORKSPACE/LDMP.$VERSION
+          
+          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP.$VERSION/
 
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP.$GITHUB_REF_NAME"
-          echo "::set-output name=ZIP_NAME::LDMP.$GITHUB_REF_NAME"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP.$VERSION"
+          echo "::set-output name=ZIP_NAME::LDMP.$VERSION"
 
       - name: Uploading plugin build
         id: artifact-upload-step
@@ -58,7 +69,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           ARTIFACT_URL: ${{ steps.artifact-upload-step.outputs.artifact-url }}
         run: |
-          invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$ARTIFACT_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP_$GITHUB_REF_NAME.zip"
+          invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$ARTIFACT_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.$VERSION.zip"
           echo " " >> docs/repository/plugins.xml 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

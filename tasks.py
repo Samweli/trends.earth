@@ -1536,7 +1536,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
             author=metadata.get("author"),
             download_url=release.get('url'),
             update_date=release.get('published_at'),
-            experimental=prerelease,
+            experimental=False,
             deprecated=metadata.get("deprecated"),
             tracker=metadata.get("tracker"),
             repository=metadata.get("repository"),

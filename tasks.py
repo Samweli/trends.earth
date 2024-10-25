@@ -1523,7 +1523,6 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
         target_releases = _get_latest_releases(all_releases)
 
     for release in [r for r in target_releases if r is not None]:
-        tag_name = release['tag_name']
         fragment = fragment_template.format(
             name=metadata.get("name"),
             version=metadata.get("version"),

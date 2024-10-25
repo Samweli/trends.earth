@@ -1526,7 +1526,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
         tag_name = release['tag_name']
         fragment = fragment_template.format(
             name=metadata.get("name"),
-            version=tag_name.replace("v", ""),
+            version=metadata.get("version"),
             description=metadata.get("description"),
             about=metadata.get("about"),
             qgis_minimum_version=metadata.get("qgisMinimumVersion"),
@@ -1537,7 +1537,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
             author=metadata.get("author"),
             download_url=release.get('url'),
             update_date=release.get('published_at'),
-            experimental=release.get('pre_release'),
+            experimental=prerelease,
             deprecated=metadata.get("deprecated"),
             tracker=metadata.get("tracker"),
             repository=metadata.get("repository"),

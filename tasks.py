@@ -1533,7 +1533,7 @@ def generate_plugin_repo_xml(c, prerelease=False, prerelease_url=None, prereleas
             filename=release.get('url').rpartition("/")[-1] \
             if not prerelease_filename else prerelease_filename,
             icon=metadata.get("icon", ""),
-            author=metadata.get("author"),
+            author="test",
             download_url=release.get('url'),
             update_date=release.get('published_at'),
             experimental=False,

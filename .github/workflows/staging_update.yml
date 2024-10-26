@@ -45,12 +45,12 @@ jobs:
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
           cat $GITHUB_WORKSPACE/LDMP/metadata.txt
           
-          mkdir $GITHUB_WORKSPACE/LDMP.$ZIP_VERSION
+          mkdir $GITHUB_WORKSPACE/LDMP-$ZIP_VERSION
           
-          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP.$ZIP_VERSION/
+          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP-$ZIP_VERSION/
 
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP.$ZIP_VERSION"
-          echo "::set-output name=ZIP_NAME::LDMP.$ZIP_VERSION"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP-$ZIP_VERSION"
+          echo "::set-output name=ZIP_NAME::LDMP-$ZIP_VERSION"
 
       - name: Uploading plugin build
         id: artifact-upload-step

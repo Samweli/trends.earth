@@ -39,8 +39,6 @@ jobs:
           ZIP_VERSION=$(echo "$REF_NAME" | sed 's/v//g')
           echo "ZIP_VERSION=$ZIP_VERSION" >> $GITHUB_ENV
 
-          echo "created version $ZIP_VERSION, $REF_NAME"
-
       - name: Plugin path details
         id: get-zip-details
         run: |

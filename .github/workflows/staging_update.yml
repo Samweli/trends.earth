@@ -38,7 +38,7 @@ jobs:
         run: |
           echo "ref name second $REF_NAME"
           
-          echo "::set-output name=VERSION::$(echo "$REF_NAME" | sed 's/v//g')"
+          echo "::set-output name=VERSION::$(python -c "import os; os.getenv('REF_NAME').replace('v', '')")"
           
           echo "created version $VERSION, $REF_NAME"
 

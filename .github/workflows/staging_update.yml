@@ -34,7 +34,7 @@ jobs:
       - name: Get version info
         id: get-version
         run: |
-          echo "::set-output name=VERSION::$(python -c "import os; os.getenv('GITHUB_REF_NAME').replace('v', '')")"
+          echo "::set-output name=VERSION::$("$GITHUB_REF_NAME//v")"
 
       - name: Plugin path details
         env:

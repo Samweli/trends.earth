@@ -35,27 +35,24 @@ jobs:
         id: get-version
         env:
           REF_NAME: ${{ github.ref_name }}
-        run: |
-          echo "ref name second $REF_NAME"
-          
-          echo "::set-output name=VERSION::$(python -c "import os; os.getenv('REF_NAME').replace('v', '')")"
-          
-          echo "created version $VERSION, $REF_NAME"
+        run: |          
+          ZIP_VERSION=$(echo "$REF_NAME" | sed 's/v//g')
+          echo "ZIP_VERSION=$ZIP_VERSION" >> $GITHUB_ENV
+
+          echo "created version $ZIP_VERSION, $REF_NAME"
 
       - name: Plugin path details
-        env:
-          VERSION: ${{ steps.get-version.outputs.VERSION }}
         id: get-zip-details
         run: |
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
           cat $GITHUB_WORKSPACE/LDMP/metadata.txt
           
-          mkdir $GITHUB_WORKSPACE/LDMP.$VERSION
+          mkdir $GITHUB_WORKSPACE/LDMP.$ZIP_VERSION
           
-          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP.$VERSION/
+          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP.$ZIP_VERSION/
 
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP.$VERSION"
-          echo "::set-output name=ZIP_NAME::LDMP.$VERSION"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP.$ZIP_VERSION"
+          echo "::set-output name=ZIP_NAME::LDMP.$ZIP_VERSION"
 
       - name: Uploading plugin build
         id: artifact-upload-step

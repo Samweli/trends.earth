@@ -33,12 +33,15 @@ jobs:
 
       - name: Get version info
         id: get-version
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
           echo "ref name $("$GITHUB_REF_NAME")"
+          echo "ref name second $REF_NAME"
           
           echo "::set-output name=VERSION::$(echo "$GITHUB_REF_NAME" | sed 's/v//g')"
           
-          echo "created version $VERSION"
+          echo "created version $VERSION, $GITHUB_REF_NAME"
 
       - name: Plugin path details
         env:

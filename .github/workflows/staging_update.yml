@@ -36,6 +36,7 @@ jobs:
         env:
           REF_NAME: ${{ github.ref_name }}
         run: |
+          cp $GITHUB_WORKSPACE/LDMP.zip $GITHUB_WORKSPACE/LDMP_TEST.zip
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
 
           echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP"
@@ -57,32 +58,15 @@ jobs:
         with:
           ref: release
 
-      - name: Authenticate GitHub CLI
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "${GITHUB_TOKEN}" | gh auth login --with-token
-
-      - name: List Artifacts
-        id: list_artifacts
-        run: |
-          # List artifacts from the current workflow run
-          gh run list --json artifacts --jq '.[] | {id: .id, name: .artifacts[].name}'
-
       - name: Make directory
         run: | 
+          
+          echo "Files list"
+          ls
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
           ls $GITHUB_WORKSPACE/docs/repository
-
-      - name: Download Artifact
-        id: download_artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.ZIP_NAME }}  # Use the same artifact name
-          path: ./docs/repository/$REF_NAME  # Specify where to download the artifact
-
 
       - name: Update custom plugin repository to include latest plugin version
         env:
@@ -92,8 +76,8 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
 
         run: |
-
-          ls -alh "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
+          cp $GITHUB_WORKSPACE/LDMP_TEST.zip $GITHUB_WORKSPACE/docs/repository/$REF_NAME/LDMP.zip
+          ls -alh $GITHUB_WORKSPACE/docs/repository/$REF_NAME
                     
           DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
           

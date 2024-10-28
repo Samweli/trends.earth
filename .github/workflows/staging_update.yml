@@ -58,7 +58,6 @@ jobs:
           ref: release
 
       - name: Make directory
-        env:
         run: | 
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME

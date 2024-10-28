@@ -61,7 +61,10 @@ jobs:
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
-          curl -L -H "Authorization: token $GITHUB_TOKEN" -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"
+          sudo apt-get install -y axel
+          axel -n 10 "$ARTIFACT_URL" -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip
+#
+#          curl -L -H "Authorization: token $GITHUB_TOKEN" -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"
           
           ls "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
                     

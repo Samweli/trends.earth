@@ -31,29 +31,6 @@ jobs:
       - name: Build zipfile
         run: invoke zipfile-build  --filename LDMP.zip
 
-      - name: Plugin path details
-        id: get-zip-details
-        env:
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          cp $GITHUB_WORKSPACE/LDMP.zip $GITHUB_WORKSPACE/LDMP_TEST.zip
-          ls -alh
-          unzip -o $GITHUB_WORKSPACE/LDMP.zip
-
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP"
-          echo "::set-output name=ZIP_NAME::LDMP"
-          
-          echo "ZIP_NAME=LDMP" >> $GITHUB_ENV
-          echo "ZIP_PATH=$GITHUB_WORKSPACE/LDMP" >> $GITHUB_ENV
-          echo "REF_NAME=$REF_NAME" >> $GITHUB_ENV
-
-      - name: Uploading plugin build
-        id: artifact-upload-step
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.get-zip-details.outputs.ZIP_NAME }}
-          path: ${{ steps.get-zip-details.outputs.ZIP_PATH }}
-
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -61,10 +38,11 @@ jobs:
           clean: false
 
       - name: Make directory
-        run: | 
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
           
-          echo "Files list"
-          ls -alh
+          echo "REF_NAME=$REF_NAME" >> $GITHUB_ENV
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
@@ -79,9 +57,7 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
 
         run: |
-          cp $GITHUB_WORKSPACE/LDMP_TEST.zip $GITHUB_WORKSPACE/docs/repository/$REF_NAME/LDMP.zip
-          ls -alh $GITHUB_WORKSPACE/docs/repository/$REF_NAME
-                    
+          cp $GITHUB_WORKSPACE/LDMP.zip $GITHUB_WORKSPACE/docs/repository/$REF_NAME/LDMP.zip                    
           DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
           
           echo "$DOWNLOAD_URL"
@@ -92,7 +68,6 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global --add safe.directory /__w/trends.earth/trends.earth
 
-          git add -A
           git add -f docs/repository/"$REF_NAME"/LDMP.zip
           git commit -m "Update on the staging repository"
           git push origin release

@@ -61,8 +61,7 @@ jobs:
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
-          sudo apt-get install -y axel
-          axel -n 10 "$ARTIFACT_URL" -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip
+          curl -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -L -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"/zip
           
           ls "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
                     

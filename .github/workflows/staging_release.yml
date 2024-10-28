@@ -1,4 +1,4 @@
-name: Updating staging with new released plugin package
+name: Updating staging with a new released plugin
 on:
   release:
     types:

@@ -1,4 +1,4 @@
-name: Update the staging repository plugin version
+name: Update the staging repository with a new plugin version
 on:
   push:
     tags:
@@ -57,13 +57,16 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
 
         run: |
-          cp $GITHUB_WORKSPACE/LDMP.zip $GITHUB_WORKSPACE/docs/repository/$REF_NAME/LDMP.zip   
+          cp $GITHUB_WORKSPACE/LDMP.zip $GITHUB_WORKSPACE/docs/
+          repository/$REF_NAME/LDMP.zip   
           
-          DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
+          DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/
+          trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
           
           echo "$DOWNLOAD_URL"
           
-          invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$DOWNLOAD_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
+          invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$DOWNLOAD_URL" 
+          --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
           echo " " >> docs/repository/plugins.xml
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

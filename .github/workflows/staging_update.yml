@@ -61,8 +61,6 @@ jobs:
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
-          touch docs/repository/"$REF_NAME"/LDMP.zip
-          
           curl -L -H "Authorization: token $GITHUB_TOKEN" -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"
           
           ls "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
@@ -72,13 +70,13 @@ jobs:
           echo "$DOWNLOAD_URL"
           
           invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$DOWNLOAD_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
-          echo " " >> docs/repository/plugins.xml 
-          touch docs/repository/"$REF_NAME"/sample.txt
+          echo " " >> docs/repository/plugins.xml
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global --add safe.directory /__w/trends.earth/trends.earth
 
           git add -A
+          git add -f docs/repository/"$REF_NAME"/LDMP.zip
           git commit -m "Update on the staging repository"
           git push origin release
 

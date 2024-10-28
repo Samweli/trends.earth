@@ -60,11 +60,24 @@ jobs:
         run: |
           cd docs/repository
           
+          pwd
+          
+          ls
+          
           mkdir $REF_NAME
+          
+          echo "directory is"
+          ls
+          
           cd $REF_NAME
           
           curl -L -H "Authorization: token $GITHUB_TOKEN" -o LDMP.zip "$ARTIFACT_URL"
+          
+          ls
+          
           cd ../../../
+          
+          pwd
           
           DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
           

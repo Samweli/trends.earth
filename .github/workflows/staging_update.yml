@@ -58,33 +58,20 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
 
         run: |
-          cd docs/repository
           
-          pwd
+          mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
-          ls
+          curl -L -H "Authorization: token $GITHUB_TOKEN" -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"
           
-          mkdir $REF_NAME
-          
-          echo "directory is"
-          ls
-          
-          cd $REF_NAME
-          
-          curl -L -H "Authorization: token $GITHUB_TOKEN" -o LDMP.zip "$ARTIFACT_URL"
-          
-          ls
-          
-          cd ../../../
-          
-          pwd
-          
+          ls "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
+                    
           DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
           
           echo "$DOWNLOAD_URL"
           
           invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$DOWNLOAD_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
           echo " " >> docs/repository/plugins.xml 
+          touch docs/repository/"$REF_NAME"/sample.txt
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global --add safe.directory /__w/trends.earth/trends.earth

@@ -61,9 +61,11 @@ jobs:
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
           
-          curl -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -L -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"/zip
+          echo $ARTIFACT_URL
           
-          ls "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
+          curl -H "Accept: application/vnd.github+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -L -o "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip $ARTIFACT_URL
+          
+          ls -alh "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
                     
           DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
           

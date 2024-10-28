@@ -55,17 +55,20 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           ARTIFACT_URL: ${{ steps.artifact-upload-step.outputs.artifact-url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REF_NAME: ${{ github.ref_name }}
 
         run: |
           cd docs/repository
           
-          mkdir $GITHUB_REF_NAME
-          cd $GITHUG_REF_NAME
+          mkdir $REF_NAME
+          cd $REF_NAME
           
           curl -L -H "Authorization: token $GITHUB_TOKEN" -o LDMP.zip "$ARTIFACT_URL"
           cd ../../
           
-          DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$GITHUG_REF_NAME"/LDMP.zip
+          DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/repository/"$REF_NAME"/LDMP.zip
+          
+          echo "$DOWNLOAD_URL"
           
           invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$DOWNLOAD_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
           echo " " >> docs/repository/plugins.xml 

@@ -33,14 +33,17 @@ jobs:
 
       - name: Plugin path details
         id: get-zip-details
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
 
           echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP"
           echo "::set-output name=ZIP_NAME::LDMP"
           
-          echo "ZIP_NAME=LDMP.zip" >> $GITHUB_ENV
-          echo "ZIP_PATH=$GITHUB_WORKSPACE/LDMP.zip" >> $GITHUB_ENV
+          echo "ZIP_NAME=LDMP" >> $GITHUB_ENV
+          echo "ZIP_PATH=$GITHUB_WORKSPACE/LDMP" >> $GITHUB_ENV
+          echo "REF_NAME=$REF_NAME" >> $GITHUB_ENV
 
       - name: Uploading plugin build
         id: artifact-upload-step
@@ -56,10 +59,11 @@ jobs:
 
       - name: Make directory
         env:
-          REF_NAME: ${{ github.ref_name }}
         run: | 
           
           mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
+          
+          ls $GITHUB_WORKSPACE/docs/repository
 
       - name: Download Artifact
         id: download_artifact

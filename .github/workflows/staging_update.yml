@@ -39,8 +39,8 @@ jobs:
           echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP"
           echo "::set-output name=ZIP_NAME::LDMP"
           
-          echo "ZIP_NAME=$ZIP_NAME.zip" >> $GITHUB_ENV
-          echo "ZIP_PATH=$ZIP_PATH.zip" >> $GITHUB_ENV
+          echo "ZIP_NAME=LDMP.zip" >> $GITHUB_ENV
+          echo "ZIP_PATH=$GITHUB_WORKSPACE/LDMP.zip" >> $GITHUB_ENV
 
       - name: Uploading plugin build
         id: artifact-upload-step

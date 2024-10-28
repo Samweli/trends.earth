@@ -31,26 +31,13 @@ jobs:
       - name: Build zipfile
         run: invoke zipfile-build  --filename LDMP.zip
 
-      - name: Get version info
-        id: get-version
-        env:
-          REF_NAME: ${{ github.ref_name }}
-        run: |          
-          ZIP_VERSION=$(echo "$REF_NAME" | sed 's/v//g')
-          echo "ZIP_VERSION=$ZIP_VERSION" >> $GITHUB_ENV
-
       - name: Plugin path details
         id: get-zip-details
         run: |
           unzip -o $GITHUB_WORKSPACE/LDMP.zip
-          cat $GITHUB_WORKSPACE/LDMP/metadata.txt
-          
-          mkdir $GITHUB_WORKSPACE/LDMP-$ZIP_VERSION
-          
-          cp -r $GITHUB_WORKSPACE/LDMP $GITHUB_WORKSPACE/LDMP-$ZIP_VERSION/
 
-          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP-$ZIP_VERSION"
-          echo "::set-output name=ZIP_NAME::LDMP-$ZIP_VERSION"
+          echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP"
+          echo "::set-output name=ZIP_NAME::LDMP"
 
       - name: Uploading plugin build
         id: artifact-upload-step
@@ -68,7 +55,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           ARTIFACT_URL: ${{ steps.artifact-upload-step.outputs.artifact-url }}
         run: |
-          invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$ARTIFACT_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.$ZIP_VERSION.zip"
+          invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$ARTIFACT_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
           echo " " >> docs/repository/plugins.xml 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

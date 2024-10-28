@@ -57,14 +57,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
-          cd build
+          cd docs/plugin/package
+          
           mkdir $GITHUB_REF_NAME
           cd $GITHUG_REF_NAME
           
           curl -L -H "Authorization: token $GITHUB_TOKEN" -o LDMP.zip "$ARTIFACT_URL"
           ls
           
-          DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/build/"$GITHUG_REF_NAME"/LDMP.zip
+          DOWNLOAD_URL=https://raw.githubusercontent.com/Samweli/trends.earth/refs/heads/release/docs/plugin/package/"$GITHUG_REF_NAME"/LDMP.zip
           
           invoke generate-plugin-repo-xml  --prerelease --prerelease-url "$DOWNLOAD_URL" --prerelease-time "$(date +'%Y-%m-%dT%H:%M:%SZ')" --prerelease-filename "LDMP.zip"
           echo " " >> docs/repository/plugins.xml 

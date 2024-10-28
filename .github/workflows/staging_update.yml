@@ -38,6 +38,9 @@ jobs:
 
           echo "::set-output name=ZIP_PATH::$GITHUB_WORKSPACE/LDMP"
           echo "::set-output name=ZIP_NAME::LDMP"
+          
+          echo "ZIP_NAME=$ZIP_NAME.zip" >> $GITHUB_ENV
+          echo "ZIP_PATH=$ZIP_PATH.zip" >> $GITHUB_ENV
 
       - name: Uploading plugin build
         id: artifact-upload-step
@@ -50,6 +53,22 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: release
+
+      - name: Make directory
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: | 
+          
+          mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
+
+      - name: Download Artifact
+        id: download_artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.ZIP_NAME }}  # Use the same artifact name
+          path: ./docs/repository/$REF_NAME  # Specify where to download the artifact
+
+
       - name: Update custom plugin repository to include latest plugin version
         env:
           PR_NUMBER: ${{ github.event.number }}
@@ -58,12 +77,6 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
 
         run: |
-          
-          mkdir $GITHUB_WORKSPACE/docs/repository/$REF_NAME
-          
-          echo $ARTIFACT_URL
-             
-          wget --header="Authorization: token $GITHUB_TOKEN" -O "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/LDMP.zip "$ARTIFACT_URL"
 
           ls -alh "$GITHUB_WORKSPACE"/docs/repository/"$REF_NAME"/
                     
